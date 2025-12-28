@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -55,6 +56,23 @@ func extractText(htmlContent string) (string, error) {
 	return strings.Join(textParts, " "), nil
 }
 
+var nonAlpha = regexp.MustCompile(`[^a-zA-Z]+`)
+
+func countWords(text string) map[string]int {
+	counts := make(map[string]int)
+
+	// Normalize: lowercase and replace non-alpha with spaces
+	normalized := nonAlpha.ReplaceAllString(strings.ToLower(text), " ")
+
+	for _, word := range strings.Fields(normalized) {
+		if word != "" {
+			counts[word]++
+		}
+	}
+
+	return counts
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "Usage: wordfreq <url>")
@@ -74,5 +92,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Extracted text:\n%s\n", text)
+	counts := countWords(text)
+	fmt.Printf("Word counts: %v\n", counts)
 }

@@ -69,3 +69,71 @@ func TestExtractText_SkipsScriptAndStyle(t *testing.T) {
 		t.Error("expected style content to be stripped")
 	}
 }
+
+func TestCountWords(t *testing.T) {
+	counts := countWords("the cat and the dog")
+
+	expected := map[string]int{
+		"the": 2,
+		"cat": 1,
+		"and": 1,
+		"dog": 1,
+	}
+
+	for word, count := range expected {
+		if counts[word] != count {
+			t.Errorf("expected %s=%d, got %d", word, count, counts[word])
+		}
+	}
+}
+
+func TestCountWords_IgnoresCaseAndPunctuation(t *testing.T) {
+	counts := countWords("Hello, HELLO! hello.")
+
+	if counts["hello"] != 3 {
+		t.Errorf("expected hello=3, got %d", counts["hello"])
+	}
+
+	// Should not have entries with punctuation
+	for word := range counts {
+		if strings.ContainsAny(word, ",.!") {
+			t.Errorf("unexpected punctuation in word: %s", word)
+		}
+	}
+}
+
+func TestCountWords_EmptyString(t *testing.T) {
+	counts := countWords("")
+	if len(counts) != 0 {
+		t.Errorf("expected empty map, got %v", counts)
+	}
+}
+
+func TestCountWords_OnlyPunctuation(t *testing.T) {
+	counts := countWords("!@#$%^&*()")
+	if len(counts) != 0 {
+		t.Errorf("expected empty map, got %v", counts)
+	}
+}
+
+func TestCountWords_OnlyWhitespace(t *testing.T) {
+	counts := countWords("   \t\n   ")
+	if len(counts) != 0 {
+		t.Errorf("expected empty map, got %v", counts)
+	}
+}
+
+func TestCountWords_SingleWord(t *testing.T) {
+	counts := countWords("hello")
+	if counts["hello"] != 1 || len(counts) != 1 {
+		t.Errorf("expected {hello:1}, got %v", counts)
+	}
+}
+
+func TestCountWords_NumbersIgnored(t *testing.T) {
+	counts := countWords("test123 456 test")
+	// "test123" becomes "test" after stripping non-alpha, "456" becomes empty
+	if counts["test"] != 2 {
+		t.Errorf("expected test=2, got %v", counts)
+	}
+}
