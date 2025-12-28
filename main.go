@@ -5,6 +5,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 func fetchURL(url string) (string, error) {
@@ -22,6 +25,36 @@ func fetchURL(url string) (string, error) {
 	return string(body), nil
 }
 
+func extractText(htmlContent string) (string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlContent))
+	if err != nil {
+		return "", err
+	}
+
+	var textParts []string
+	var extract func(*html.Node)
+	extract = func(n *html.Node) {
+		// Skip script and style elements
+		if n.Type == html.ElementNode && (n.Data == "script" || n.Data == "style") {
+			return
+		}
+
+		if n.Type == html.TextNode {
+			text := strings.TrimSpace(n.Data)
+			if text != "" {
+				textParts = append(textParts, text)
+			}
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			extract(c)
+		}
+	}
+
+	extract(doc)
+	return strings.Join(textParts, " "), nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "Usage: wordfreq <url>")
@@ -35,5 +68,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Fetched %d bytes\n", len(content))
+	text, err := extractText(content)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error extracting text: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Extracted text:\n%s\n", text)
 }
