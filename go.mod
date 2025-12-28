@@ -1,4 +1,4 @@
-module wordfreq
+module github.com/RahulPrabha/wordfreq
 
 go 1.25.5
 
