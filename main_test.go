@@ -137,3 +137,53 @@ func TestCountWords_NumbersIgnored(t *testing.T) {
 		t.Errorf("expected test=2, got %v", counts)
 	}
 }
+
+func TestTopN(t *testing.T) {
+	counts := map[string]int{"a": 5, "b": 3, "c": 8, "d": 1}
+	top := topN(counts, 3)
+
+	if len(top) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(top))
+	}
+
+	// Should be sorted by count descending: c(8), a(5), b(3)
+	expected := []struct {
+		word  string
+		count int
+	}{{"c", 8}, {"a", 5}, {"b", 3}}
+
+	for i, exp := range expected {
+		if top[i].word != exp.word || top[i].count != exp.count {
+			t.Errorf("position %d: expected %s=%d, got %s=%d",
+				i, exp.word, exp.count, top[i].word, top[i].count)
+		}
+	}
+}
+
+func TestTopN_LessThanN(t *testing.T) {
+	counts := map[string]int{"a": 1, "b": 2}
+	top := topN(counts, 10)
+
+	if len(top) != 2 {
+		t.Errorf("expected 2 results, got %d", len(top))
+	}
+}
+
+func TestTopN_EmptyMap(t *testing.T) {
+	counts := map[string]int{}
+	top := topN(counts, 10)
+
+	if len(top) != 0 {
+		t.Errorf("expected 0 results, got %d", len(top))
+	}
+}
+
+func TestTopN_Tiebreaker(t *testing.T) {
+	counts := map[string]int{"banana": 5, "apple": 5, "cherry": 5}
+	top := topN(counts, 3)
+
+	// Same count, so alphabetical order: apple, banana, cherry
+	if top[0].word != "apple" || top[1].word != "banana" || top[2].word != "cherry" {
+		t.Errorf("expected alphabetical order for ties, got %v", top)
+	}
+}
