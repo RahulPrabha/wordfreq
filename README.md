@@ -5,13 +5,13 @@ A CLI tool that fetches a URL and displays the top 10 most frequent words.
 ## Installation
 
 ```bash
-go install github.com/yourusername/wordfreq@latest
+go install github.com/RahulPrabha/wordfreq@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/yourusername/wordfreq.git
+git clone https://github.com/RahulPrabha/wordfreq.git
 cd wordfreq
 go build -o wordfreq .
 ```
